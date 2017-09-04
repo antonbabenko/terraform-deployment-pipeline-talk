@@ -1,0 +1,46 @@
+{
+  "variables": {
+    "aws_region": "eu-west-1"
+  },
+  "builders": [
+    {
+      "ami_name": "fullstackfest-demo-{{uuid | clean_ami_name}}",
+      "ami_description": "FullStackFest demo AMI based on Amazon Linux",
+      "instance_type": "t2.large",
+      "region": "{{user `aws_region`}}",
+      "type": "amazon-ebs",
+      "ssh_username": "ec2-user",
+      "source_ami_filter": {
+        "filters": {
+          "virtualization-type": "hvm",
+          "name": "amzn-ami-hvm-*-x86_64-gp2",
+          "root-device-type": "ebs"
+        },
+        "owners": [
+          "137112412989"
+        ],
+        "most_recent": true
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "sudo yum update -y && sudo yum install -y nginx"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "../web",
+      "destination": "/tmp"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo /bin/cp -Rf /tmp/web/* /usr/share/nginx/html",
+        "sudo chkconfig nginx on"
+      ]
+    }
+  ]
+}

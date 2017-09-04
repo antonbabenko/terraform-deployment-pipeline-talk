@@ -1,0 +1,129 @@
+version: 2
+
+# Default configurations
+packer: &packer
+  docker:
+    - image: hashicorp/packer:1.0.4
+  working_directory: /tmp/workspace/packer
+
+terraform: &terraform
+  docker:
+    - image: hashicorp/terraform:0.10.2
+  working_directory: /tmp/workspace/terraform/example2
+
+jobs:
+# Application related jobs are below
+  test_and_build_application:
+    docker:
+      - image: circleci/ruby:2.4
+    steps:
+      - checkout
+      - run:
+          name: Run unit-tests
+          command: echo "Developers will put tests here - they said :)"
+      - run:
+          name: Build application
+          command: |
+            echo "Build it (npm install, gem install, rake install, ...)"
+            sed -i "s|\${BUILD_DETAILS}|Build number: $CIRCLE_BUILD_NUM|g" web/index.html
+      - persist_to_workspace:
+          root: .
+          paths: .
+
+  build_ami:
+    <<: *packer
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: packer validate app.json
+          command: packer validate app.json
+      - run:
+          name: packer build
+          command: packer build app.json
+
+# Infrastructure related jobs are below
+  validate_infrastructure:
+    <<: *terraform
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Add github.com to ~/.ssh/known_hosts
+          command: mkdir ~/.ssh && ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+      - run:
+          name: terraform init
+          command: terraform init -input=false
+      - run:
+          name: Validate Terraform configurations
+          command: find . -type f -name "*.tf" -exec dirname {} \;|sort -u | while read m; do (terraform validate -check-variables=false "$m" && echo "√ $m") || exit 1 ; done
+      - run:
+          name: Check if Terraform configurations are properly formatted
+          command: if [[ -n "$(terraform fmt -write=false)" ]]; then echo "Some terraform files need be formatted, run 'terraform fmt' to fix"; exit 1; fi
+      - run:
+          name: Install tflint
+          command: curl -L -o /tmp/tflint.zip https://github.com/wata727/tflint/releases/download/v0.4.2/tflint_linux_amd64.zip && unzip /tmp/tflint.zip -d /usr/local/bin
+      - run:
+          name: Check Terraform configurations with tflint
+          command: tflint
+
+  plan_infrastructure:
+    <<: *terraform
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Add github.com to ~/.ssh/known_hosts
+          command: mkdir ~/.ssh && ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+      - run:
+          name: terraform init
+          command: terraform init -input=false
+      - run:
+          name: terraform plan
+          command: terraform plan -input=false -out=tfplan
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .terraform # persist this to be able to apply execution plan without running init once more
+            - tfplan
+
+  apply_infrastructure:
+    <<: *terraform
+    working_directory: /tmp/workspace
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: terraform apply
+          command: terraform apply -input=false tfplan
+
+master_workflow_filters: &master_workflow_filters
+  filters:
+    branches:
+      only:
+        - master
+
+workflows:
+  version: 2
+  test-build-plan-apply:
+    jobs:
+      - test_and_build_application
+      - build_ami:
+          <<: *master_workflow_filters
+          requires:
+            - test_and_build_application
+      - validate_infrastructure:
+          requires:
+            - test_and_build_application
+      - plan_infrastructure:
+          requires:
+            - build_ami
+            - validate_infrastructure
+      - approve_infrastructure:
+          type: approval
+          requires:
+            - plan_infrastructure
+      - apply_infrastructure:
+          requires:
+            - approve_infrastructure
+
