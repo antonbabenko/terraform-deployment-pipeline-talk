@@ -1,6 +1,6 @@
 # terraform-delivery-pipeline-talk
 
-This repository contains code for the "Terraform in delivery pipeline" talk by [Anton Babenko](https://github.com/antonbabenko).
+This repository contains code for the "Terraform in delivery pipeline" talk by [Anton Babenko](https://github.com/antonbabenko). Slides from this talk are hosted [here](https://www.slideshare.net/AntonBabenko/terraform-in-deployment-pipeline)
 
 There are several independent Terraform configurations in `terraform` directory.
 
