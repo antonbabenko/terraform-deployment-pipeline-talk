@@ -1,0 +1,63 @@
+{
+  "builders": [
+    {
+      "type": "amazon-chroot",
+      "region": "eu-west-1",
+      "source_ami_filter": {
+        "filters": {
+          "virtualization-type": "hvm",
+          "name": "amzn-ami-hvm-*-x86_64-gp2",
+          "root-device-type": "ebs"
+        },
+        "owners": [
+          "137112412989"
+        ],
+        "most_recent": true
+      },
+      "ami_name": "app-amazon-chroot-{{isotime | clean_ami_name}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "echo '#!/bin/sh' > /usr/sbin/policy-rc.d",
+        "echo 'exit 101' >> /usr/sbin/policy-rc.d",
+        "chmod a+x /usr/sbin/policy-rc.d"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "mkdir /run/shm",
+        "echo 'tmpfs /dev/shm tmpfs defaults 0 0' >> /etc/fstab",
+        "mount -a"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo yum install -y nginx"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "../web",
+      "destination": "/tmp"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo /bin/cp -Rf /tmp/web/* /usr/share/nginx/html",
+        "sudo chkconfig nginx on"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "umount /dev/shm",
+        "rm -f /usr/sbin/policy-rc.d"
+      ]
+    }
+  ]
+}
