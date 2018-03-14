@@ -26,6 +26,9 @@ jobs:
           name: Add github.com to ~/.ssh/known_hosts
           command: mkdir ~/.ssh && ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
       - run:
+          name: Set terraform plugins directory
+          command: echo -e "plugin_cache_dir = \"$HOME/.terraform.d/plugin-cache\"\ndisable_checkpoint = true" > ~/.terraformrc
+      - run:
           name: terraform init
           command: terraform init -input=false
       - run:
@@ -34,12 +37,6 @@ jobs:
       - run:
           name: Check if Terraform configurations are properly formatted
           command: if [[ -n "$(terraform fmt -write=false)" ]]; then echo "Some terraform files need be formatted, run 'terraform fmt' to fix"; exit 1; fi
-      - run:
-          name: Install tflint
-          command: curl -L -o /tmp/tflint.zip https://github.com/wata727/tflint/releases/download/v0.4.2/tflint_linux_amd64.zip && unzip /tmp/tflint.zip -d /usr/local/bin
-      - run:
-          name: Check Terraform configurations with tflint
-          command: tflint
 
   plan_infrastructure:
     <<: *terraform
