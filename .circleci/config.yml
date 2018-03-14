@@ -3,12 +3,13 @@ version: 2
 # Default configurations
 terraform: &terraform
   docker:
-    - image: hashicorp/terraform:0.10.2
+    - image: antonbabenko/terracing:v0.0.3
   working_directory: /tmp/workspace/terraform/example2
 
 jobs:
 # Application related jobs are below
   checkout:
+    <<: *terraform
     steps:
       - checkout
       - persist_to_workspace:
@@ -70,6 +71,12 @@ jobs:
           name: terraform apply
           command: terraform apply -input=false tfplan
 
+master_workflow_filters: &master_workflow_filters
+  filters:
+    branches:
+      only:
+        - master
+
 workflows:
   version: 2
   test-build-plan-apply:
@@ -80,13 +87,13 @@ workflows:
             - checkout
       - plan_infrastructure:
           requires:
-            - build_ami
             - validate_infrastructure
       - approve_infrastructure:
+          <<: *master_workflow_filters
           type: approval
           requires:
             - plan_infrastructure
       - apply_infrastructure:
+          <<: *master_workflow_filters
           requires:
             - approve_infrastructure
-
