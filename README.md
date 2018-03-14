@@ -13,6 +13,10 @@ Create S3 bucket with single object placed there. There is no automation, no sup
 Terraform community module is used to create security group, AWS AMI data source is used to find AMI produced
 by configuration at `packer/app.json`. CircleCI workflow configuration is at `.circleci/config.yml`.
 
+## terraform/example3
+
+EC2 instance and EC2 security group Terraform AWS modules are used.
+
 ## Complete CircleCI workflow
 
 <img src="https://github.com/antonbabenko/terraform-delivery-pipeline-talk/blob/master/terraform_circleci_pipeline.png?raw=true" alt="Terraform in your delivery pipeline - CircleCI workflow" align="center" />
