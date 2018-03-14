@@ -35,13 +35,23 @@ variable "instance_type" {
 ##############
 # Data sources
 ##############
-data "aws_ami" "app" {
+data "aws_ami" "amazon_linux" {
   most_recent = true
 
   filter {
     name = "name"
 
-    values = ["fullstackfest-demo-*"]
+    values = [
+      "amzn-ami-hvm-*-x86_64-gp2",
+    ]
+  }
+
+  filter {
+    name = "owner-alias"
+
+    values = [
+      "amazon",
+    ]
   }
 }
 
@@ -59,14 +69,10 @@ module "sg_web" {
 # Resources
 ###########
 resource "aws_instance" "app" {
-  ami                    = "${data.aws_ami.app.id}"
+  ami                    = "${data.aws_ami.amazon_linux.id}"
   instance_type          = "${var.instance_type}"
   subnet_id              = "${var.subnet_id}"
-  vpc_security_group_ids = ["${module.sg_web.security_group_id_web}"]
-
-  tags {
-    Name = "fullstackfest-demo"
-  }
+  vpc_security_group_ids = ["${module.sg_web.this_security_group_id}"]
 }
 
 #########
