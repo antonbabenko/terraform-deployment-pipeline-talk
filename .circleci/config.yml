@@ -1,11 +1,6 @@
 version: 2
 
 # Default configurations
-packer: &packer
-  docker:
-    - image: hashicorp/packer:1.0.4
-  working_directory: /tmp/workspace/packer
-
 terraform: &terraform
   docker:
     - image: hashicorp/terraform:0.10.2
@@ -13,34 +8,12 @@ terraform: &terraform
 
 jobs:
 # Application related jobs are below
-  test_and_build_application:
-    docker:
-      - image: circleci/ruby:2.4
+  checkout:
     steps:
       - checkout
-      - run:
-          name: Run unit-tests
-          command: echo "Developers will put tests here - they said :)"
-      - run:
-          name: Build application
-          command: |
-            echo "Build it (npm install, gem install, rake install, ...)"
-            sed -i "s|\${BUILD_DETAILS}|Build number: $CIRCLE_BUILD_NUM|g" web/index.html
       - persist_to_workspace:
           root: .
           paths: .
-
-  build_ami:
-    <<: *packer
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - run:
-          name: packer validate app.json
-          command: packer validate app.json
-      - run:
-          name: packer build
-          command: packer build app.json
 
 # Infrastructure related jobs are below
   validate_infrastructure:
@@ -97,24 +70,14 @@ jobs:
           name: terraform apply
           command: terraform apply -input=false tfplan
 
-master_workflow_filters: &master_workflow_filters
-  filters:
-    branches:
-      only:
-        - master
-
 workflows:
   version: 2
   test-build-plan-apply:
     jobs:
-      - test_and_build_application
-      - build_ami:
-          <<: *master_workflow_filters
-          requires:
-            - test_and_build_application
+      - checkout
       - validate_infrastructure:
           requires:
-            - test_and_build_application
+            - checkout
       - plan_infrastructure:
           requires:
             - build_ami

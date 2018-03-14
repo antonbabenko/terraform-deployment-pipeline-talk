@@ -49,10 +49,10 @@ data "aws_ami" "app" {
 # Modules
 #########
 module "sg_web" {
-  source              = "git@github.com:terraform-community-modules/tf_aws_sg.git//sg_web?ref=v0.2.3"
-  security_group_name = "fullstackfest-demo-web"
-  vpc_id              = "${var.vpc_id}"
-  source_cidr_block   = ["0.0.0.0/0"]
+  source = "terraform-aws-modules/security-group/aws"
+
+  name   = "my-app"
+  vpc_id = "${var.vpc_id}"
 }
 
 ###########
