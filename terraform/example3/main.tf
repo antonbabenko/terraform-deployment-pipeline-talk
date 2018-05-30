@@ -8,12 +8,12 @@
 terraform {
   required_version = ">= 0.11"
 
-  //  backend "s3" {
-  //    bucket  = "my-tf-states-anton-demo"
-  //    key     = "terraform-delivery-pipeline-example3"
-  //    region  = "eu-west-1"
-  //    encrypt = true
-  //  }
+  backend "s3" {
+    bucket  = "my-tf-states-anton-demo"
+    key     = "terraform-delivery-pipeline-example3"
+    region  = "eu-west-1"
+    encrypt = true
+  }
 }
 
 ###########
