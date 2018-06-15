@@ -3,7 +3,7 @@ version: 2
 # Default configurations
 terraform: &terraform
   docker:
-    - image: antonbabenko/terracing:v0.0.3
+    - image: antonbabenko/terracing:v0.0.6
   working_directory: /tmp/workspace/terraform/example3
 
 jobs:
