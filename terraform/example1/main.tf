@@ -26,7 +26,7 @@ data "template_file" "index" {
   template = "${file("../../web/index.html")}"
 
   vars {
-    BUILD_DETAILS = "I was deployed from example1 to ${aws_s3_bucket.app.website_endpoint}"
+    BUILD_DETAILS = "I was deployed from example1 to ${aws_s3_bucket.app.website_endpoint} again!"
   }
 }
 
