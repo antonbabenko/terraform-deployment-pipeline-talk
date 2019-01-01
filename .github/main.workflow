@@ -1,4 +1,4 @@
-workflow "Terraform" {
+workflow "Terraform 2" {
   resolves = "terraform-plan"
   on = "push"
 }
