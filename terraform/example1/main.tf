@@ -1,4 +1,5 @@
-terraform {
+/*
+  terraform {
   backend "s3" {
     bucket  = "my-tf-states-anton-demo"
     key     = "terraform-delivery-pipeline-example1"
@@ -6,7 +7,8 @@ terraform {
     encrypt = true
   }
 }
-
+*/
+  
 provider "aws" {
   region = "eu-west-1"
 }
