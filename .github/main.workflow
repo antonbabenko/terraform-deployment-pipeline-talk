@@ -1,6 +1,6 @@
 workflow "Terraform" {
   resolves = "terraform-plan"
-  on = "pull_request"
+  on = "push"
 }
 
 action "filter-to-pr-open-synced" {
@@ -41,6 +41,7 @@ action "terraform-plan" {
   secrets = ["GITHUB_TOKEN"]
   env = {
     TF_ACTION_WORKING_DIR = "./terraform/example1"
+
     # If you're using Terraform workspaces, set this to the workspace name.
     # TF_ACTION_WORKSPACE = "default"
   }
